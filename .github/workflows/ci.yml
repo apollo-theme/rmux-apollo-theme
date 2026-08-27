@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  compatible-source-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install tmux-compatible validator
+        run: sudo apt-get update && sudo apt-get install -y tmux
+      - name: Verify generated theme
+        run: python3 scripts/generate.py --check
+      - name: Check compatible native options
+        run: python3 scripts/check.py
+      - name: Run tests
+        run: python3 -m unittest discover -s tests -v
