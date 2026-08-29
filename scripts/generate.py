@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the Apollo theme for RMUX from the bundled palette snapshot."""
+"""Generate both Apollo RMUX variants from bundled palette snapshots."""
 
 from __future__ import annotations
 
@@ -9,19 +9,31 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PALETTE_PATH = ROOT / "palette" / "apollo.json"
-OUTPUT_PATH = ROOT / "apollo-rmux.conf"
-PALETTE_SHA256 = "550f8c36cf4ef6ac99551541d1fe9554f77d563fa1e7c129a6a82583321d61ef"
+VARIANTS = {
+    "dark": {
+        "palette": ROOT / "palette" / "apollo.json",
+        "output": ROOT / "apollo-rmux.conf",
+        "sha256": "550f8c36cf4ef6ac99551541d1fe9554f77d563fa1e7c129a6a82583321d61ef",
+        "id": "apollo",
+    },
+    "light": {
+        "palette": ROOT / "palette" / "apollo-light.json",
+        "output": ROOT / "apollo-rmux-light.conf",
+        "sha256": "b0dbdeb719ed1931c424e9590562689325ecac1609e2fed6406ec5c4d3dc5763",
+        "id": "apollo-light",
+    },
+}
 
 
-def load_palette() -> dict:
-    raw = PALETTE_PATH.read_bytes()
+def load_palette(variant: str = "dark") -> dict:
+    config = VARIANTS[variant]
+    raw = config["palette"].read_bytes()
     digest = hashlib.sha256(raw).hexdigest()
-    if digest != PALETTE_SHA256:
-        raise ValueError(f"palette snapshot hash mismatch: {digest}")
+    if digest != config["sha256"]:
+        raise ValueError(f"{variant} palette snapshot hash mismatch: {digest}")
     palette = json.loads(raw)
-    if palette.get("id") != "apollo" or palette.get("schemaVersion") != 1:
-        raise ValueError("unsupported Apollo palette snapshot")
+    if palette.get("id") != config["id"] or palette.get("schemaVersion") != 1:
+        raise ValueError(f"unsupported Apollo {variant} palette snapshot")
     return palette
 
 
@@ -37,8 +49,11 @@ def render(palette: dict) -> str:
     surface = palette["colors"]["surface"]
     cyan = palette["colors"]["cyan"]
     magenta = palette["colors"]["magenta"]
-    return f'''# Apollo for RMUX
-# Generated from palette/apollo.json by scripts/generate.py; do not edit.
+    light = palette["id"] == "apollo-light"
+    name = "Apollo Light" if light else "Apollo"
+    palette_file = "apollo-light.json" if light else "apollo.json"
+    return f'''# {name} for RMUX
+# Generated from palette/{palette_file} by scripts/generate.py; do not edit.
 # RMUX/tmux-compatible theme options only; no status content, keys, or shell behavior.
 
 set-option -g status-style "bg={color("canvas")},fg={color("textPrimary")}"
@@ -60,19 +75,32 @@ set-window-option -g copy-mode-current-match-style "bg={magenta},fg={color("canv
 '''
 
 
+def render_outputs() -> dict[Path, str]:
+    return {
+        config["output"]: render(load_palette(variant))
+        for variant, config in VARIANTS.items()
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--check", action="store_true", help="fail if apollo-rmux.conf is stale")
+    parser.add_argument("--check", action="store_true", help="fail if either RMUX theme is stale")
     args = parser.parse_args()
-    expected = render(load_palette())
+    expected = render_outputs()
     if args.check:
-        if not OUTPUT_PATH.exists() or OUTPUT_PATH.read_text(encoding="utf-8") != expected:
-            print(f"{OUTPUT_PATH.relative_to(ROOT)} is not generated from the palette")
+        stale = [
+            path.relative_to(ROOT)
+            for path, text in expected.items()
+            if not path.exists() or path.read_text(encoding="utf-8") != text
+        ]
+        if stale:
+            print("stale generated file(s): " + ", ".join(map(str, stale)))
             return 1
-        print("apollo-rmux.conf is up to date")
+        print("RMUX theme variants are up to date")
         return 0
-    OUTPUT_PATH.write_text(expected, encoding="utf-8", newline="\n")
-    print(f"wrote {OUTPUT_PATH.relative_to(ROOT)}")
+    for path, text in expected.items():
+        path.write_text(text, encoding="utf-8", newline="\n")
+        print(f"wrote {path.relative_to(ROOT)}")
     return 0
 
 

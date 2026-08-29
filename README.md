@@ -12,14 +12,15 @@
 </p>
 
 <p align="center">
-  <a href="https://apollo-theme.github.io/#app-rmux"><img alt="RMUX Apollo Theme simulated preview" src="https://raw.githubusercontent.com/apollo-theme/apollo-theme.github.io/main/previews/rmux.svg" width="900"></a>
+  <a href="https://apollo-theme.github.io/#app-rmux"><img alt="RMUX Apollo Dark simulated preview" src="https://raw.githubusercontent.com/apollo-theme/apollo-theme.github.io/main/previews/rmux.svg" width="900"></a>
+  <a href="https://apollo-theme.github.io/#app-rmux-light"><img alt="RMUX Apollo Light simulated preview" src="https://raw.githubusercontent.com/apollo-theme/apollo-theme.github.io/main/previews/rmux-light.svg" width="900"></a>
 </p>
 
 <p align="center"><em>Simulated preview — terminal fonts and rendering can change the final appearance.</em></p>
 
 ## About
 
-This standalone RMUX repository remains separate from the tmux package. `apollo-rmux.conf` contains only RMUX/tmux-compatible color options; it does not copy status content, key bindings, prefixes, commands, hooks, or unrelated RMUX configuration.
+This standalone RMUX repository remains separate from the tmux package. `apollo-rmux.conf` (Dark) and `apollo-rmux-light.conf` (Light) contain only RMUX/tmux-compatible color options; neither copies status content, key bindings, prefixes, commands, hooks, or unrelated RMUX configuration. Source exactly one variant at a time.
 
 Repository: <https://github.com/apollo-theme/rmux-apollo-theme>
 
@@ -33,17 +34,17 @@ git clone https://github.com/apollo-theme/rmux-apollo-theme "$HOME/.config/rmux-
 
 ## Activate
 
-Apply it to the running RMUX daemon:
+Apply exactly one variant to the running RMUX daemon:
 
 ```sh
+# Dark (default)
 rmux source-file "$HOME/.config/rmux-apollo-theme/apollo-rmux.conf"
+
+# Light
+rmux source-file "$HOME/.config/rmux-apollo-theme/apollo-rmux-light.conf"
 ```
 
-For future daemons, manually add this line to your RMUX configuration:
-
-```tmux
-source-file ~/.config/rmux-apollo-theme/apollo-rmux.conf
-```
+For future daemons, manually add one corresponding `source-file` line to your RMUX configuration. Do not source both variants; the last one would replace the same theme options. RMUX controls its status, pane-border, message, and mode chrome but cannot change the terminal canvas behind pane content, so pair Apollo Light with a light terminal profile.
 
 No installer edits `rmux.conf`.
 
