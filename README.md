@@ -20,7 +20,7 @@
 
 ## About
 
-This standalone RMUX repository remains separate from the tmux package. `apollo-rmux.conf` (Dark) and `apollo-rmux-light.conf` (Light) contain only RMUX/tmux-compatible color options; neither copies status content, key bindings, prefixes, commands, hooks, or unrelated RMUX configuration. Source exactly one variant at a time.
+This standalone RMUX repository remains separate from the tmux package. Apollo Dark preserves the existing unsuffixed `apollo-rmux.conf` artifact and default selector for compatibility. Apollo Light is the explicit `apollo-rmux-light.conf` companion. Both contain only RMUX/tmux-compatible color options; neither copies status content, key bindings, prefixes, commands, hooks, or unrelated RMUX configuration. Source exactly one variant at a time.
 
 Repository: <https://github.com/apollo-theme/rmux-apollo-theme>
 
@@ -60,12 +60,21 @@ A running daemon keeps its current option values; reload your normal theme/confi
 
 ## Visual check
 
-Attach to RMUX. The status canvas should be near-black with warm text, the active window blue, active pane borders and messages gold, and alerts red. Confirm the base status values with:
+Attach to RMUX, then source and query Apollo Dark before Apollo Light:
 
 ```sh
+# Apollo Dark
+rmux source-file "$HOME/.config/rmux-apollo-theme/apollo-rmux.conf"
 rmux show-options -gv status-style
 # bg=#141617,fg=#cfbc97
+
+# Apollo Light
+rmux source-file "$HOME/.config/rmux-apollo-theme/apollo-rmux-light.conf"
+rmux show-options -gv status-style
+# bg=#f9f5d7,fg=#3c3836
 ```
+
+For Apollo Dark, the status canvas should be near-black with warm text. For Apollo Light, it should use a warm light canvas with dark text. In both variants, the active window, pane borders, messages, and alerts should remain distinct.
 
 ## Development
 
